@@ -1,0 +1,11 @@
+{
+  "type": "alpha_new_token",
+  "chain": "BNB Smart Chain Mainnet",
+  "address": "0x73D8bD54F7Cf5FAb43fE4Ef40A62D390644946Db",
+  "name": "Sidekick",
+  "symbol": "K",
+  "amount": 10000000,
+  "contract": "0x0a73d885cdd66adf69c6d64c0609e55c527db2be",
+  "explorer": "https://bscscan.com/token/0x0a73d885cdd66adf69c6d64c0609e55c527db2be?a=0x73D8bD54F7Cf5FAb43fE4Ef40A62D390644946Db",
+  "detected_at": "2025-08-08 14:04:48"
+}
