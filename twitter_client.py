@@ -1,6 +1,9 @@
 import tweepy
 import logging
 import time
+import os
+import requests
+import urllib3
 from typing import Optional, Dict, Any
 from config import Config
 
@@ -20,15 +23,69 @@ class TwitterClient:
             # 验证配置
             Config.validate()
             
+            # 配置全局代理（如果启用）
+            if Config.USE_PROXY and Config.PROXY_URL:
+                logger.info(f"使用代理: {Config.PROXY_URL}")
+                
+                # 设置全局代理环境变量
+                proxy_env_vars = {
+                    'HTTP_PROXY': Config.PROXY_URL,
+                    'HTTPS_PROXY': Config.PROXY_URL,
+                    'http_proxy': Config.PROXY_URL,
+                    'https_proxy': Config.PROXY_URL
+                }
+                
+                for key, value in proxy_env_vars.items():
+                    os.environ[key] = value
+                    
+                logger.info("已设置代理环境变量")
+                
+                # 测试代理连接
+                try:
+                    proxies = {
+                        'http': Config.PROXY_URL,
+                        'https': Config.PROXY_URL
+                    }
+                    response = requests.get('https://httpbin.org/ip', proxies=proxies, timeout=10)
+                    if response.status_code == 200:
+                        ip_info = response.json()
+                        logger.info(f"代理测试成功，当前IP: {ip_info.get('origin', 'unknown')}")
+                    else:
+                        logger.warning(f"代理测试返回状态码: {response.status_code}")
+                except requests.exceptions.ProxyError as e:
+                    logger.error(f"代理连接失败: {e}")
+                    raise Exception(f"无法连接到代理服务器 {Config.PROXY_URL}")
+                except requests.exceptions.Timeout as e:
+                    logger.warning(f"代理测试超时: {e}")
+                except Exception as e:
+                    logger.warning(f"代理测试失败: {e}")
+                
+                # 确保代理配置生效
+                logger.info("代理配置已应用，tweepy将通过环境变量使用代理")
+                
+            else:
+                logger.info("未使用代理")
+                # 清除所有代理环境变量
+                for proxy_env in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+                    os.environ.pop(proxy_env, None)
+            
             # 创建 Twitter API v2 客户端
-            self.client = tweepy.Client(
-                bearer_token=Config.TWITTER_BEARER_TOKEN,
-                consumer_key=Config.TWITTER_CONSUMER_KEY,
-                consumer_secret=Config.TWITTER_CONSUMER_SECRET,
-                access_token=Config.TWITTER_ACCESS_TOKEN,
-                access_token_secret=Config.TWITTER_ACCESS_TOKEN_SECRET,
-                wait_on_rate_limit=True  # 自动处理速率限制
-            )
+            client_kwargs = {
+                'bearer_token': Config.TWITTER_BEARER_TOKEN,
+                'consumer_key': Config.TWITTER_CONSUMER_KEY,
+                'consumer_secret': Config.TWITTER_CONSUMER_SECRET,
+                'access_token': Config.TWITTER_ACCESS_TOKEN,
+                'access_token_secret': Config.TWITTER_ACCESS_TOKEN_SECRET,
+                'wait_on_rate_limit': True  # 自动处理速率限制
+            }
+            
+            # 如果使用代理，添加代理配置
+            if Config.USE_PROXY and Config.PROXY_URL:
+                # tweepy 支持通过环境变量自动配置代理
+                # 我们已经在上面设置了环境变量，这里无需额外配置
+                pass
+            
+            self.client = tweepy.Client(**client_kwargs)
             
             # 验证认证
             self._verify_credentials()

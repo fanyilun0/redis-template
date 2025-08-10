@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 # 加载环境变量
 load_dotenv()
 
+PROXY_URL = 'http://host.docker.internal:7890' if os.getenv('IS_DOCKER') else 'http://localhost:7890'
+USE_PROXY = os.getenv('USE_PROXY', 'false').lower() == 'true'
+
 class Config:
     """应用配置类"""
     
@@ -13,6 +16,11 @@ class Config:
     TWITTER_CONSUMER_SECRET = os.getenv('TWITTER_CONSUMER_SECRET')
     TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN')
     TWITTER_ACCESS_TOKEN_SECRET = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+    TWITTER_SENDING = os.getenv('TWITTER_SENDING', 'true').lower() == 'true'
+    
+    # 代理配置
+    USE_PROXY = USE_PROXY
+    PROXY_URL = PROXY_URL
     
     # Redis 配置
     REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')

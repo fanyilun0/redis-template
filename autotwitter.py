@@ -81,7 +81,7 @@ class AlphaConsumer:
         self.running = True
         # 初始化 Twitter
         self.twitter = TwitterClient()
-        self.twitterSending = True  # 启用推文发送
+        self.twitterSending = Config.TWITTER_SENDING  # 启用推文发送
         # 初始化 Redis
         redis_config = {
             'host': Config.REDIS_HOST,

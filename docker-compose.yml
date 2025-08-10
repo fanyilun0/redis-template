@@ -15,9 +15,20 @@ services:
       - TZ=Asia/Shanghai
       - ENV=prod
       - IS_DOCKER=true
+      - USE_PROXY=true  # 启用代理
       - HTTP_PROXY=http://host.docker.internal:7890
       - HTTPS_PROXY=http://host.docker.internal:7890
+      # Redis配置
+      - REDIS_HOST=my-redis-bot
+      - REDIS_PORT=6379
     extra_hosts:
       - "host.docker.internal:host-gateway"
     shm_size: '0.5gb'
     restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: shared-network
